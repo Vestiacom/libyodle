@@ -3,6 +3,7 @@
 
 
 #include "message.hpp"
+#include "types.hpp"
 #include "internals/sender.hpp"
 #include "internals/receiver.hpp"
 
@@ -40,7 +41,7 @@ struct Channel: std::enable_shared_from_this<Channel> {
      * Write data to the output buffer.
      * Will not block.
      */
-    void send(const int kind, const std::shared_ptr<std::vector<char>> data);
+    void send(const std::shared_ptr<yodle::Message> data);
 
     /**
      * Register message handler
@@ -71,7 +72,7 @@ private:
     void shutdown();
 
     // Handle message
-    void onMessage(const int kind, const std::shared_ptr<std::vector<char>> data);
+    void onMessage(const std::shared_ptr<yodle::Message> message);
 
     // Socket's fd
     int mFD;

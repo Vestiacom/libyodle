@@ -1,8 +1,10 @@
 #ifndef YODLE_TYPES_HPP_
 #define YODLE_TYPES_HPP_
 
-#include <functional>
 #include "message.hpp"
+
+#include <functional>
+#include <memory>
 
 namespace yodle {
 

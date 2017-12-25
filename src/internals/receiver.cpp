@@ -8,16 +8,19 @@
 #include <sstream>
 #include <sys/socket.h>
 #include <vector>
+#include <algorithm>
+#include <iterator>
 
 
 namespace yodle {
+namespace internals {
 
 Receiver::Receiver(int fd,
                    struct ev_loop* evLoop,
                    const MessageHandler& onMessage)
     : mInputWatcher(evLoop),
       mFD(fd),
-      mOnMessage(onMessage),
+      mOnMessage(onMessage)
 {
     if (!evLoop) {
         THROW("ev_loop is null");
@@ -103,7 +106,7 @@ void Receiver::onInput(ev::io& w, int revents)
 
 }
 
-void Receiver::parse(const vector<char>& data)
+void Receiver::parse(const std::vector<char>& data)
 {
     for (size_t i = 0; i < data.size();) {
         switch (mState) {
@@ -116,7 +119,7 @@ void Receiver::parse(const vector<char>& data)
             break;
         }
         case State::KIND: {
-            int shift = (bytes[i] << (8 * mBytesRead));
+            int shift = (data[i] << (8 * mBytesRead));
             int mask = 0xff << shift;
             mMessage->kind = (~mask &  mMessage->kind) | shift;
 
@@ -131,7 +134,7 @@ void Receiver::parse(const vector<char>& data)
             break;
         }
         case State::SIZE: {
-            int shift = (bytes[i] << (8 * mBytesRead));
+            int shift = (data[i] << (8 * mBytesRead));
             int mask = 0xff << shift;
             mMessage->size = (~mask &  mMessage->size) | shift;
 
@@ -147,17 +150,19 @@ void Receiver::parse(const vector<char>& data)
                 }
             }
 
-            ++i
+            ++i;
             break;
         }
         case State::BODY: {
             std::size_t bodyLeft = mMessage->size - mBytesRead;
-            bodyLeft = bodyLeft > data.size() - i;
-            bytesLeft = data.size() - sizeof(Message::kind) - sizeof(Message::size);
-            if (bodyLeft > bytesLeft) {
-                std::copy_n(data.begin() + i, bytesLeft, std:::ostream_iterator<char>(mMessage.ss));
-                mBytesRead += 
-            }
+            // bodyLeft = bodyLeft > data.size() - i;
+            std::size_t dataLeft = data.size() - i;
+
+
+            std::size_t toRead = bodyLeft > dataLeft ? dataLeft : bodyLeft;            
+            std::copy_n(data.begin() + i, toRead, std::ostream_iterator<char>(mMessage->ss));
+            mBytesRead += toRead;
+
             mState = State::END;
 
             // NO BREAK HERE
@@ -165,48 +170,13 @@ void Receiver::parse(const vector<char>& data)
             // break;
         }
         case State::END: {
-            onMessage(mMessage);
+            mOnMessage(mMessage);
             mState = State::START;
             break;
         }
         }
     }
 }
-
-int Receiver::onMessageBegin(::http_parser* parser)
-{
-    try {
-        Receiver& rec = *static_cast<Receiver*>(parser->data);
-        rec.resetRequest();
-
-        // Continue parsing
-        return 0;
-    }
-    catch (const std::exception& e) {
-        // Stop parsing the request
-        LOGE("Got exception in parsing HTTP: " << e.what());
-        return -1;
-    }
-}
-
-int Receiver::onMessageComplete(::http_parser* parser)
-{
-    try {
-        Receiver& rec = *static_cast<Receiver*>(parser->data);
-        if (rec.mInputDataCallback) {
-            rec.mInputDataCallback(rec.mRequest);
-        }
-        // Continue parsing
-        return 0;
-    }
-    catch (const std::exception& e) {
-        // Stop parsing the request
-        LOGE("Got exception in parsing HTTP: " << e.what());
-        return -1;
-    }
-}
-
-
 
 } // namespace internals
 } // namespace everest

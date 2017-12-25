@@ -1,6 +1,8 @@
 #ifndef YODLE_INTERNALS_RECEIVER_HPP_
 #define YODLE_INTERNALS_RECEIVER_HPP_
 
+#include "../types.hpp"
+
 #include <vector>
 #include <functional>
 #include <memory>
@@ -53,7 +55,7 @@ private:
     // New data on socket
     void onInput(ev::io& w, int revents);
 
-    void parse(const vector<char>& data);
+    void parse(const std::vector<char>& data);
 
     // Waits for new data
     ev::io mInputWatcher;
@@ -74,11 +76,11 @@ private:
         SIZE,
         BODY,
         END,
-    }
+    };
 
     State mState;
 
-    // Meaning differs 
+    // Meaning differs
     std::size_t mBytesRead;
 };
 

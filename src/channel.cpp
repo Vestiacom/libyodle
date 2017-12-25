@@ -22,6 +22,8 @@ Channel::Channel(int fd,
         THROW("bad fd");
     }
 
+    using namespace std::placeholders;
+
     mReceiver = std::unique_ptr<internals::Receiver>(new internals::Receiver(fd,
                                                                              evLoop,
                                                                              std::bind(&Channel::onMessage, this, _1)));
@@ -71,9 +73,9 @@ bool Channel::isClosed()
     return mReceiver->isClosed() || mSender->isClosed() || mFD == -1;
 }
 
-void Channel::send(const int kind, const std::shared_ptr<std::vector<char>> data)
+void Channel::send(const std::shared_ptr<yodle::Message> message)
 {
-    mSender->send(kind, data);
+    mSender->send(message);
 }
 
 void Channel::on(const int kind, const MessageHandler& cb)
@@ -81,11 +83,11 @@ void Channel::on(const int kind, const MessageHandler& cb)
     mHandlers.push_back(std::make_pair(kind, cb));
 }
 
-void Channel::onMessage(const int kind, const std::shared_ptr<std::vector<char>> data)
+void Channel::onMessage(const std::shared_ptr<yodle::Message> message)
 {
     // Find callback
-    auto it = std::find_if(mHandlers.begin(), mHandlers.end(), [](const std::pair<int, MessageHandler>& element) {
-        return element.first == kind;
+    auto it = std::find_if(mHandlers.begin(), mHandlers.end(), [&message](const std::pair<int, MessageHandler>& element) {
+        return element.first == message->kind;
     });
 
     if (it == mHandlers.end()) {
@@ -95,7 +97,7 @@ void Channel::onMessage(const int kind, const std::shared_ptr<std::vector<char>>
 
     // Handle message
     try {
-        it->second(data);
+        it->second(message);
     }
     catch (const std::exception& e) {
         LOGE("Got exception in parsing HTTP: " << e.what());

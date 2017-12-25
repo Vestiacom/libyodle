@@ -4,20 +4,19 @@
 #include <cassert>
 #include <cstddef>
 #include <sstream>
+#include <vector>
 
 namespace yodle {
-namespace internals {
 
 struct Message {
 
-    int mKind;
-    std::size_t mSize;
-    std::stringstream mSS;
+    int kind;
+    std::size_t size;
+    std::stringstream ss;
 
-    int getData();
+    std::vector<char> getData();
 };
 
-} // namespace internals
 } // namespace yodle
 
 #endif // YODLE_SOCKET_PAIR_HPP_

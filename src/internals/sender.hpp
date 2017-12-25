@@ -6,11 +6,9 @@
 #include <memory>
 #include <ev++.h>
 
+#include "../message.hpp"
+
 namespace yodle {
-
-struct Response;
-
-
 namespace internals {
 
 /**
@@ -65,19 +63,18 @@ private:
     // Socket's fd
     int mFD;
 
-    // When Response is send gets stored here.
-    // Responses are send in order, one by one, in the onOutput callback.
-    // The front (oldest) Response is serialized into the mOutputBuffer
-    std::queue<std::shared_ptr<Response>> mResponses;
+    // When Message is sent it gets stored here.
+    // Messages are send in order, one by one, in the onOutput callback.
+    // The front (oldest) Message is serialized into the mOutputBuffer
+    std::queue<std::shared_ptr<yodle::Message>> mMessages;
 
-    // Buffer with the latest response to send
+    // Buffer with the latest message to send
     std::vector<char> mOutputBuffer;
 
     // Position in the buffer.
     // Some data might have been send,
     // this is the position of the first unsent byte in the mOutputBuffer.
     std::size_t mOutputBufferPosition;
-
 
     // Flow control variable.
     // Does the response that is being send have the Connection: close header?
@@ -87,4 +84,4 @@ private:
 } // namespace internals
 } // namespace yodle
 
-#endif /YODLEST_INTERNALS_SENDER_HPP_
+#endif // YODLEST_INTERNALS_SENDER_HPP_

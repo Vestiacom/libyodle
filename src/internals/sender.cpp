@@ -1,26 +1,12 @@
 #include "sender.hpp"
 #include "logger.hpp"
-#include "../response.hpp"
 
 #include <map>
 #include <unistd.h>
 #include <cerrno>
 #include <cstring>
-#include <http_parser.h>
 
 #include <sys/socket.h>
-
-namespace {
-
-// String statuses tied to the status code.
-// Using http-parser macro.
-std::map<int, std::string> gStatuses  = {
-#define XX(num, name, string) {num, #string},
-    HTTP_STATUS_MAP(XX)
-#undef XX
-};
-
-} // namespace
 
 namespace yodle {
 namespace internals {
@@ -49,7 +35,7 @@ Sender::~Sender()
 
 void Sender::start()
 {
-    if (!mResponses.empty()) {
+    if (!mMessages.empty()) {
         mOutputWatcher.start(mFD, ev::WRITE);
     }
 }
@@ -73,8 +59,8 @@ void Sender::shutdown()
     }
     mFD = -1;
 
-    while (!mResponses.empty()) {
-        mResponses.pop();
+    while (!mMessages.empty()) {
+        mMessages.pop();
     }
 
     mOutputBuffer.clear();
@@ -88,54 +74,8 @@ bool Sender::isClosed()
 
 void Sender::fillBuffer()
 {
-    auto& response = *mResponses.front();
-
-    // Status line ------------------------------------------------------------
-    // For example:
-    // HTTP/1.1 200 OK
-    // HTTP/1.0 404 Not Found
-    // HTTP/1.1 403 Forbidden
-
-    std::string data = "HTTP/1.1 ";
-    std::copy(data.begin(), data.end(), std::back_inserter(mOutputBuffer));
-
-    data = std::to_string(response.getStatus()) + " ";
-    std::copy(data.begin(), data.end(), std::back_inserter(mOutputBuffer));
-
-    std::string& statusText = gStatuses[response.getStatus()];
-    std::copy(statusText.begin(), statusText.end(), std::back_inserter(mOutputBuffer));
-
-    data = "\r\n";
-    std::copy(data.begin(), data.end(), std::back_inserter(mOutputBuffer));
-
-    // Headers -----------------------------------------------------------------
-    // For example:
-    // Accept-Ranges: bytes
-    // Content-Length: 44
-    // Sender: close
-
-    const auto& headers = response.getHeaders();
-    for (const auto& header : headers) {
-        std::copy(header.first.begin(), header.first.end(), std::back_inserter(mOutputBuffer));
-        mOutputBuffer.push_back(':');
-        std::copy(header.second.begin(), header.second.end(), std::back_inserter(mOutputBuffer));
-        std::copy(data.begin(), data.end(), std::back_inserter(mOutputBuffer));
-    }
-
-    std::copy(data.begin(), data.end(), std::back_inserter(mOutputBuffer));
-
-    // Body -------------------------------------------------------------------
-    // Body is already URL encoded
-    std::string body = response.getBody();
-    std::copy(body.begin(), body.end(), std::back_inserter(mOutputBuffer));
-
-
-    // Should this be the last message?
-    mIsClosing = response.isClosing();
-
-    mResponses.pop();
-
-    LOGT(std::string(mOutputBuffer.data(), mOutputBuffer.size()));
+    auto& message = *mMessages.front();
+    mOutputBuffer = message.getData();
 }
 
 void Sender::onOutput(ev::io& w, int revents)
@@ -160,7 +100,7 @@ void Sender::onOutput(ev::io& w, int revents)
         }
 
 
-        if (mResponses.empty()) {
+        if (mMessages.empty()) {
             // And there's no more responses to send.
             // Pause sending and free the buffer.
             mOutputBufferPosition = 0;
@@ -200,9 +140,9 @@ void Sender::onOutput(ev::io& w, int revents)
     }
 }
 
-void Sender::send(const std::shared_ptr<Response>& response)
+void Sender::send(const std::shared_ptr<yodle::Message> response)
 {
-    mResponses.push(response);
+    mMessages.push(response);
 
     // Ensure sending data is switched on
     mOutputWatcher.start(mFD, ev::WRITE);

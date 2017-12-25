@@ -9,7 +9,10 @@ namespace yodle {
 
 std::string toString(const LogLevel logLevel);
 
+namespace internals {
 extern thread_local LogCallback gLogCallback;
+
+} // namespace internals
 
 /// Generic logging macro. Needs mLogger callback to be present.
 #define LOG(LEVEL, MESSAGE)                                                 \
