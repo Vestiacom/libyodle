@@ -16,7 +16,11 @@ find_package(GTest REQUIRED)
 include_directories(${SRC_DIR} ${TESTS_DIR})
 include_directories(SYSTEM ${GTEST_INCLUDE_DIRS})
 
-target_link_libraries(${UT_PROJECT_NAME} ${GTEST_BOTH_LIBRARIES} ev.a pthread)
+
+message(STATUS ${GTEST_BOTH_LIBRARIES})
+message(STATUS ${GTEST_LIBRARIES})
+message(STATUS ${GTEST_MAIN_LIBRARIES})
+target_link_libraries(${UT_PROJECT_NAME} ev.a pthread gtest )
 
 
 ## Integrate with CTest runner #################################################
