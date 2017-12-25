@@ -31,7 +31,6 @@ Receiver::Receiver(int fd,
     }
 
     mInputWatcher.set<Receiver, &Receiver::onInput>(this);
-
 }
 
 Receiver::~Receiver()
