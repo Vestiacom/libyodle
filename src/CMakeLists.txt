@@ -21,7 +21,8 @@ if (ENABLE_STATIC)
         add_library(${STATIC_TARGET} STATIC ${SRCS})
 
         set_target_properties(${STATIC_TARGET}  PROPERTIES
-                                VERSION           ${_LIB_VERSION_})
+                                OUTPUT_NAME     ${PROJECT_NAME}
+                                VERSION         ${_LIB_VERSION_})
 
         install(TARGETS     ${STATIC_TARGET}
                 COMPONENT   ${STATIC_TARGET}
