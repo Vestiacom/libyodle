@@ -14,11 +14,11 @@ sudo make install
 ./everest-tests --catch_system_errors=no
 ```
 # Message format
-| Name |    Size   |
-|:-----|:---------:|
-| KIND | 4 bytes   |
-| SIZE | 4 bytes   |
-| BODY | SIZE bytes|
+| Name |      Size      |
+|------|:--------------:|
+| KIND |   sizeof(int)  |
+| SIZE | sizeof(size_t) |
+| BODY |   SIZE bytes   |
 
 
 # Example usage
