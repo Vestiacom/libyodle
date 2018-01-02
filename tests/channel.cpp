@@ -81,6 +81,47 @@ TEST(Channel, EmptyBody)
     ::kill(pid, SIGKILL);
 }
 
+enum class KIND {
+    A
+};
+
+TEST(Channel, Example)
+{
+    int fd[2];
+    ::socketpair(AF_LOCAL, SOCK_STREAM, 0, fd);
+
+    struct ev_loop* loop = EV_DEFAULT;
+
+    int pid = ::fork();
+    if (pid == 0) {
+        yodle::Channel a(fd[0], loop);
+
+        auto m = yodle::createMessage(KIND::A);
+        m->ss << "Body";
+        a.send(m);
+
+        a.start();
+        ::ev_run(loop, 0);
+
+        ::exit(EXIT_SUCCESS);
+    }
+
+    yodle::Channel b(fd[1], loop);
+    b.on(KIND::A, [&](const std::shared_ptr<Message> m) {
+        std::cout << "Kind: " <<  m->kind << std::endl;
+        std::cout << "Size: " <<  m->size << std::endl;
+        std::cout << "Body: " <<  m->ss.str() << std::endl;
+
+        ::ev_break(loop, EVBREAK_ALL);
+    });
+
+    b.start();
+
+    ::ev_run(loop, 0);
+
+    ::kill(pid, SIGKILL);
+}
+
 TEST(Channel, WithBody)
 {
     int fd[2];
@@ -119,10 +160,9 @@ TEST(Channel, WithBody)
     ::kill(pid, SIGKILL);
 }
 
-std::string random_string( size_t length )
+std::string random_string(size_t length)
 {
-    auto randchar = []() -> char
-    {
+    auto randchar = []() -> char {
         const char charset[] =
         "0123456789"
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -130,14 +170,14 @@ std::string random_string( size_t length )
         const size_t max_index = (sizeof(charset) - 1);
         return charset[ rand() % max_index ];
     };
-    std::string str(length,0);
-    std::generate_n( str.begin(), length, randchar );
+    std::string str(length, 0);
+    std::generate_n(str.begin(), length, randchar);
     return str;
 }
 
 TEST(Channel, BodyBiggerThanBuffer)
 {
-    std::string body = random_string(4096*100);
+    std::string body = random_string(4096 * 100);
 
     int fd[2];
     ASSERT_EQ(0, socketpair(AF_LOCAL, SOCK_STREAM, 0, fd));
@@ -174,8 +214,6 @@ TEST(Channel, BodyBiggerThanBuffer)
 
     ::kill(pid, SIGKILL);
 }
-
-
 
 TEST(Channel, Load)
 {

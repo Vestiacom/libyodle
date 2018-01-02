@@ -78,11 +78,6 @@ void Channel::send(const std::shared_ptr<yodle::Message> message)
     mSender->send(message);
 }
 
-void Channel::on(const int kind, const MessageHandler& cb)
-{
-    mHandlers.push_back(std::make_pair(kind, cb));
-}
-
 void Channel::onMessage(const std::shared_ptr<yodle::Message> message)
 {
     // Find callback

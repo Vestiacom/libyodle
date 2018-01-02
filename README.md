@@ -25,17 +25,45 @@ sudo make install
 ```cpp
 
 #include <ev++.h>
-#include <everest/everest.hpp>
+#include <yodle/yodle.hpp>
 
-enum struct MSG_TYPE { 
-	MSG_A	
-}
-int setup() {
-	struct ev_loop* loop = EV_DEFAULT;
+enum class KIND {
+    A
+};
 
-	yodle::Channel channel(loop);
-	
-	// Runs till ev_break is called
-	ev_run(loop, 0);
+int main() {
+    int fd[2];
+    ::socketpair(AF_LOCAL, SOCK_STREAM, 0, fd);
+
+    struct ev_loop* loop = EV_DEFAULT;
+
+    int pid = ::fork();
+    if (pid == 0) {
+        yodle::Channel a(fd[0], loop);
+
+        auto m = yodle::createMessage(KIND::A);
+        m->ss << "Body";
+        a.send(m);
+
+        a.start();
+        ::ev_run(loop, 0);
+
+        ::exit(EXIT_SUCCESS);
+    }
+
+    yodle::Channel b(fd[1], loop);
+    b.on(KIND::A, [&](const std::shared_ptr<Message> m) {
+        std::cout << "Kind: " <<  m->kind << std::endl;
+        std::cout << "Size: " <<  m->size << std::endl;
+        std::cout << "Body: " <<  m->ss.str() << std::endl;
+
+        ::ev_break(loop, EVBREAK_ALL);
+    });
+
+    b.start();
+
+    ::ev_run(loop, 0);
+
+    ::kill(pid, SIGKILL);
 }
 ```

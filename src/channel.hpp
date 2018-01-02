@@ -46,7 +46,10 @@ struct Channel: std::enable_shared_from_this<Channel> {
     /**
      * Register message handler
      */
-    void on(const int kind, const MessageHandler& cb);
+    // void on(const int kind, const MessageHandler& cb);
+
+    template<typename KIND>
+    void on(const KIND kind, const MessageHandler& cb);
 
     /**
      * @return underlying fd
@@ -78,6 +81,11 @@ private:
     int mFD;
 };
 
+template<typename KIND>
+void Channel::on(const KIND kind, const MessageHandler& cb)
+{   
+    mHandlers.push_back(std::make_pair(static_cast<int>(kind), cb));
+}
 } // namespace yodle
 
 #endif // YODLE_CHANNEL_HPP_

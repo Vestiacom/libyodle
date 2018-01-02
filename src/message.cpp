@@ -8,6 +8,11 @@ Message::Message()
     : kind(0),
       size(0)
 {}
+
+Message::Message(const int kind)
+    : kind(kind),
+      size(0)
+{}
 // Gets
 std::vector<char> Message::getData()
 {
