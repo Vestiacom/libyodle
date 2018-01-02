@@ -9,6 +9,7 @@
 namespace yodle {
 
 struct Message {
+    Message();
     // User defined bbmessage kind
     int kind;
 

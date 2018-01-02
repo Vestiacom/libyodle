@@ -35,6 +35,8 @@ Sender::~Sender()
 
 void Sender::start()
 {
+    LOGD("Starting");
+
     if (!mMessages.empty()) {
         mOutputWatcher.start(mFD, ev::WRITE);
     }
@@ -42,11 +44,15 @@ void Sender::start()
 
 void Sender::stop()
 {
+    LOGD("Stopping");
+
     mOutputWatcher.stop();
 }
 
 void Sender::shutdown()
 {
+    LOGD("Shutting down");
+
     if (mFD < 0) {
         return;
     }
@@ -75,13 +81,15 @@ bool Sender::isClosed()
 void Sender::fillBuffer()
 {
     auto& message = *mMessages.front();
+
+    LOGD("Serialize message: kind:" << message.kind);
     mOutputBuffer = message.getData();
+
+    mMessages.pop();
 }
 
 void Sender::onOutput(ev::io& w, int revents)
 {
-    // cout << "onOutput" << endl;
-
     if (EV_ERROR & revents) {
         LOGE("Unspecified error in output callback: " <<  std::strerror(errno));
         shutdown();
@@ -92,6 +100,7 @@ void Sender::onOutput(ev::io& w, int revents)
     // Ensure output buffer has any data to send
     if (mOutputBufferPosition >= mOutputBuffer.size()) {
         // No data to send in mOutputBuffer.
+        LOGD("POS: " << mOutputBufferPosition);
 
         if (mIsClosing) {
             // And it was the last message in this connection
@@ -101,6 +110,7 @@ void Sender::onOutput(ev::io& w, int revents)
 
 
         if (mMessages.empty()) {
+        LOGD("EMPTY" );
             // And there's no more responses to send.
             // Pause sending and free the buffer.
             mOutputBufferPosition = 0;
@@ -118,6 +128,7 @@ void Sender::onOutput(ev::io& w, int revents)
     ssize_t n  = ::write(w.fd,
                          &mOutputBuffer[mOutputBufferPosition],
                          mOutputBuffer.size() - mOutputBufferPosition);
+    LOGD("WROTE: " << n);
     if (n >= 0) {
         mOutputBufferPosition += n;
     }
@@ -140,9 +151,10 @@ void Sender::onOutput(ev::io& w, int revents)
     }
 }
 
-void Sender::send(const std::shared_ptr<yodle::Message> response)
+void Sender::send(const std::shared_ptr<yodle::Message> message)
 {
-    mMessages.push(response);
+    LOGD("Sending message: kind: " << message->kind);
+    mMessages.push(message);
 
     // Ensure sending data is switched on
     mOutputWatcher.start(mFD, ev::WRITE);

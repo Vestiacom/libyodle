@@ -20,7 +20,8 @@ Receiver::Receiver(int fd,
                    const MessageHandler& onMessage)
     : mInputWatcher(evLoop),
       mFD(fd),
-      mOnMessage(onMessage)
+      mOnMessage(onMessage),
+      mState(State::START)
 {
     if (!evLoop) {
         THROW("ev_loop is null");
@@ -40,16 +41,19 @@ Receiver::~Receiver()
 
 void Receiver::start()
 {
+    LOGD("Starting");
     mInputWatcher.start(mFD, ev::READ);
 }
 
 void Receiver::stop()
 {
+    LOGD("Stopping");
     mInputWatcher.stop();
 }
 
 void Receiver::shutdown()
 {
+    LOGD("Shutting down");
     if (mFD < 0) {
         return;
     }
@@ -71,6 +75,7 @@ bool Receiver::isClosed()
 
 void Receiver::onInput(ev::io& w, int revents)
 {
+    LOGD("Received input");
     if (EV_ERROR & revents) {
         LOGW("Unspecified error in input callback: " <<  std::strerror(errno));
         shutdown();
@@ -78,7 +83,7 @@ void Receiver::onInput(ev::io& w, int revents)
     }
 
     // Make this configurable
-    std::vector<char> buf(1024);
+    std::vector<char> buf(4096);
 
     ssize_t received = ::read(w.fd, buf.data(), buf.size());
     if (received < 0) {
@@ -102,14 +107,16 @@ void Receiver::onInput(ev::io& w, int revents)
     buf.resize(received);
 
     parse(buf);
-
 }
 
 void Receiver::parse(const std::vector<char>& data)
 {
+    LOGD("Parsing message, size: " << data.size());
     for (size_t i = 0; i < data.size();) {
+        // LOGD("PARSER: State" << (int)mState);
         switch (mState) {
         case State::START: {
+            LOGD("PARSER: Message start");
             mMessage = std::make_shared<Message>();
 
             // Prepare for kind
@@ -118,12 +125,12 @@ void Receiver::parse(const std::vector<char>& data)
             break;
         }
         case State::KIND: {
-            int shift = (data[i] << (8 * mBytesRead));
-            int mask = 0xff << shift;
-            mMessage->kind = (~mask &  mMessage->kind) | shift;
+            reinterpret_cast<char*>(&mMessage->kind)[mBytesRead] = data[i];
 
             ++mBytesRead;
-            if (mBytesRead > sizeof(Message::kind)) {
+            if (mBytesRead >= sizeof(Message::kind)) {
+                LOGD("PARSER: Kind: " << mMessage->kind);
+
                 // Prepare for size
                 mBytesRead = 0;
                 mState = State::SIZE;
@@ -133,48 +140,63 @@ void Receiver::parse(const std::vector<char>& data)
             break;
         }
         case State::SIZE: {
-            int shift = (data[i] << (8 * mBytesRead));
-            int mask = 0xff << shift;
-            mMessage->size = (~mask &  mMessage->size) | shift;
+            LOGD("PARSER: Size byte: " <<  std::to_string((int)data[i]));
+            LOGD("PARSER: Size read: " << std::to_string(mBytesRead));
+            reinterpret_cast<char*>(&mMessage->size)[mBytesRead] = data[i];
 
             ++mBytesRead;
-            if (mBytesRead > sizeof(Message::size)) {
+            ++i;
+            if (mBytesRead >= sizeof(Message::size)) {
                 // Prepare for body
                 mBytesRead = 0;
-                if (mMessage->size == 0) {
+                LOGD("PARSER: Size: " << mMessage->size);
+                if (mMessage->size != 0) {
                     mState = State::BODY;
                 }
                 else {
                     mState = State::END;
+                    goto state_end;
                 }
             }
 
-            ++i;
             break;
         }
         case State::BODY: {
+            // LOGD("PARSER: Body expected: " << mMessage->size << " read: " << mBytesRead);
+
             std::size_t bodyLeft = mMessage->size - mBytesRead;
             // bodyLeft = bodyLeft > data.size() - i;
             std::size_t dataLeft = data.size() - i;
 
 
-            std::size_t toRead = bodyLeft > dataLeft ? dataLeft : bodyLeft;            
+            std::size_t toRead = bodyLeft > dataLeft ? dataLeft : bodyLeft;
             std::copy_n(data.begin() + i, toRead, std::ostream_iterator<char>(mMessage->ss));
             mBytesRead += toRead;
 
-            mState = State::END;
+            if (mMessage->size != mBytesRead) {
+                // Body not yet ready
+                LOGD("BODY not ready");
+                return;
+            }
 
+            mState = State::END;
+            i += toRead;
             // NO BREAK HERE
             // Move to the next state right away
             // break;
         }
+state_end:
         case State::END: {
+            LOGD("PARSER: Message end");
             mOnMessage(mMessage);
             mState = State::START;
             break;
         }
         }
     }
+
+    // LOGD("Parsed all data");
+
 }
 
 } // namespace internals

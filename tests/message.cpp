@@ -49,9 +49,8 @@ TEST(Message, NonEmptyMessage)
     m.ss << "12345";
 
     auto bytes = m.getData();
-    // for (std::size_t i = 0; i < bytes.size(); ++i) {
-    //     std::cout << std::hex <<  bytes[i];
-    // }
+
+    ASSERT_EQ(12 + 5, bytes.size());
 
     std::size_t i = 0;
     ASSERT_EQ(1, bytes[i++]);
@@ -59,6 +58,10 @@ TEST(Message, NonEmptyMessage)
     ASSERT_EQ(0, bytes[i++]);
     ASSERT_EQ(0, bytes[i++]);
     ASSERT_EQ(5, bytes[i++]);
+    ASSERT_EQ(0, bytes[i++]);
+    ASSERT_EQ(0, bytes[i++]);
+    ASSERT_EQ(0, bytes[i++]);
+    ASSERT_EQ(0, bytes[i++]);
     ASSERT_EQ(0, bytes[i++]);
     ASSERT_EQ(0, bytes[i++]);
     ASSERT_EQ(0, bytes[i++]);
