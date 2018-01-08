@@ -12,8 +12,8 @@ namespace yodle {
 namespace internals {
 
 /**
- * Sends out HTTP data via the passed socket
- * There's only one Sender per Connection.
+ * Sends out data via the passed socket
+ * There's only one Sender per Channel.
  */
 struct Sender {
 
@@ -76,9 +76,6 @@ private:
     // this is the position of the first unsent byte in the mOutputBuffer.
     std::size_t mOutputBufferPosition;
 
-    // Flow control variable.
-    // Does the response that is being send have the Connection: close header?
-    bool mIsClosing;
 };
 
 } // namespace internals

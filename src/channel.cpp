@@ -95,7 +95,7 @@ void Channel::onMessage(const std::shared_ptr<yodle::Message> message)
         it->second(message);
     }
     catch (const std::exception& e) {
-        LOGE("Got exception in parsing HTTP: " << e.what());
+        LOGE("Exception in message handler: " << e.what());
         return;
     }
 }

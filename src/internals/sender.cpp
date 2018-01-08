@@ -14,8 +14,7 @@ namespace internals {
 
 Sender::Sender(int fd, struct ev_loop* evLoop)
     : mOutputWatcher(evLoop),
-      mFD(fd),
-      mIsClosing(false)
+      mFD(fd)
 {
     if (!evLoop) {
         THROW("ev_loop is null");
@@ -102,16 +101,9 @@ void Sender::onOutput(ev::io& w, int revents)
         // No data to send in mOutputBuffer.
         LOGD("POS: " << mOutputBufferPosition);
 
-        if (mIsClosing) {
-            // And it was the last message in this connection
-            shutdown();
-            return;
-        }
-
-
         if (mMessages.empty()) {
-        LOGD("EMPTY" );
-            // And there's no more responses to send.
+            LOGD("EMPTY");
+            // And there's no more messages to send.
             // Pause sending and free the buffer.
             mOutputBufferPosition = 0;
             mOutputBuffer.clear();

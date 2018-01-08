@@ -7,7 +7,6 @@
 #include <functional>
 #include <memory>
 #include <ev++.h>
-#include <http_parser.h>
 
 namespace yodle {
 

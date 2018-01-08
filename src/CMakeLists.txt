@@ -39,7 +39,7 @@ set_target_properties(${SHARED_TARGET} PROPERTIES
 target_compile_definitions(${SHARED_TARGET} PUBLIC "-DYODLE_DLL")
 
 ## Includes ####################################################################
-include_directories(SYSTEM ${HTTPPARSER_INCLUDE_DIRS})
+
 
 
 ## Install #####################################################################
