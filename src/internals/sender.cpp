@@ -14,7 +14,8 @@ namespace internals {
 
 Sender::Sender(int fd, struct ev_loop* evLoop)
     : mOutputWatcher(evLoop),
-      mFD(fd)
+      mFD(fd),
+      mOutputBufferPosition(0)
 {
     if (!evLoop) {
         THROW("ev_loop is null");
