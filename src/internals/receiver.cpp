@@ -103,6 +103,11 @@ void Receiver::onInput(ev::io& w, int revents)
         return;
     }
 
+    if (received == 0) {
+        shutdown();
+        return;
+    }
+
     // This won't reallocate any data, just a trick to work with a vector
     buf.resize(received);
 
