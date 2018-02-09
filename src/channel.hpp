@@ -83,7 +83,7 @@ private:
 
 template<typename KIND>
 void Channel::on(const KIND kind, const MessageHandler& cb)
-{   
+{
     mHandlers.push_back(std::make_pair(static_cast<int>(kind), cb));
 }
 } // namespace yodle

@@ -83,7 +83,8 @@ void Receiver::onInput(ev::io& w, int revents)
     }
 
     // Make this configurable
-    std::vector<char> buf(4096);
+    // TODO: Avoid allocating every time
+    std::vector<char> buf(5012);
 
     ssize_t received = ::read(w.fd, buf.data(), buf.size());
     if (received < 0) {
@@ -104,6 +105,7 @@ void Receiver::onInput(ev::io& w, int revents)
     }
 
     if (received == 0) {
+        LOGD("Connection closed by peer");
         shutdown();
         return;
     }
@@ -145,8 +147,8 @@ void Receiver::parse(const std::vector<char>& data)
             break;
         }
         case State::SIZE: {
-            LOGD("PARSER: Size byte: " <<  std::to_string((int)data[i]));
-            LOGD("PARSER: Size read: " << std::to_string(mBytesRead));
+            // LOGD("PARSER: Size byte: " <<  std::to_string((int)data[i]));
+            // LOGD("PARSER: Size read: " << std::to_string(mBytesRead));
             reinterpret_cast<char*>(&mMessage->size)[mBytesRead] = data[i];
 
             ++mBytesRead;
@@ -186,6 +188,7 @@ void Receiver::parse(const std::vector<char>& data)
 
             mState = State::END;
             i += toRead;
+
             // NO BREAK HERE
             // Move to the next state right away
             // break;
@@ -200,7 +203,7 @@ state_end:
         }
     }
 
-    // LOGD("Parsed all data");
+    LOGD("Parsed all data");
 
 }
 

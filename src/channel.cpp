@@ -80,6 +80,8 @@ void Channel::send(const std::shared_ptr<yodle::Message> message)
 
 void Channel::onMessage(const std::shared_ptr<yodle::Message> message)
 {
+    LOGD("Received message, kind: " << message->kind);
+
     // Find callback
     auto it = std::find_if(mHandlers.begin(), mHandlers.end(), [&message](const std::pair<int, MessageHandler>& element) {
         return element.first == message->kind;
