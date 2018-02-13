@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(yodle) # Same as library's name
 
-set(MAJOR_VERSION 0)
+set(MAJOR_VERSION 1)
 set(MINOR_VERSION 0)
-set(PATCH_VERSION 1)
+set(PATCH_VERSION 0)
 set(VERSION "${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}")
 
 ## Build configuration ########################################################
