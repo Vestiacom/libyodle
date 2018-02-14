@@ -1,8 +1,8 @@
 # Yodle
-This is a library for IPC in a C++ application in . It uses wonderful [libev](http://software.schmorp.de/pkg/libev.html).
+This is a library for IPC in a C++ application. It uses the wonderful [libev](http://software.schmorp.de/pkg/libev.html).
 
 Yodle provides an implementation of `Channel` that you can use to asynchronously receive and send messages.
-You create a `Channel` with libev event loop and a file descriptor. Tipically you'd `socketpair` to obtain two, connected sockets for IPC, but it should also be possible to use pipes. (Sockets are buffered so you'll avoid some potential race conditions after forking)
+You create a `Channel` with libev event loop and a file descriptor. Tipicaly you'd `socketpair` to obtain two, connected sockets for IPC, but it should also be possible to use pipes. (Sockets are buffered so you'll avoid some potential race conditions after forking)
 
 Then you register some callbacks with `Channel::on`, run `Channel::start` and you're ready to go! It's very simple.
 
