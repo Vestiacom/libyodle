@@ -28,7 +28,7 @@ Messages can only be passed with a `std::shared_ptr` to potentially allow passin
 # Build
 ```sh
 mkdir build && cd build
-cmake ..
+cmake ..  -DENABLE_HEADERS=ON -DENABLE_TESTING=ON -DENABLE_STATIC=ON
 make
 sudo make install
 ```
