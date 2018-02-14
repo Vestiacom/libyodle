@@ -8,6 +8,8 @@ Then you register some callbacks with `Channel::on`, run `Channel::start` and yo
 
 Communication between channels is asynchronous. `Channel::send` puts messages on a queue and whenever underlying fd is ready to be written yodle will serialize the message into a buffer and write it to fd. Receiveing and parsing messages is also asynchronous. Yodle reads and parses the message whenever fd has some data. It handles fragmented messages and messages bigger than the read buffer, so relax. :)
 
+After you're done with the `Channel` you call `Channel::stop` to deregister underlying watchers from libev.
+
 ### Message format
 In order to pass your data through the `Channel` yodle sends very simple messages. This message will get serialized in one `Channel` and parsed in the other. When all data is received a callback assigned to KIND value is run.
 
@@ -72,6 +74,8 @@ int main() {
         std::cout << "Size: " <<  m->size << std::endl;
         std::cout << "Body: " <<  m->ss.str() << std::endl;
 
+        b.stop()
+        
         ::ev_break(loop, EVBREAK_ALL);
     });
 
@@ -79,6 +83,7 @@ int main() {
 
     ::ev_run(loop, 0);
 
+    // Child process won't close itself
     ::kill(pid, SIGKILL);
 }
 ```
