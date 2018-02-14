@@ -1,5 +1,27 @@
 # Yodle
-LibYodle is a library for Linux IPC in a C++ application. It uses [libev](http://software.schmorp.de/pkg/libev.html).
+This is a library for IPC in a C++ application in . It uses wonderful [libev](http://software.schmorp.de/pkg/libev.html).
+
+Yodle provides an implementation of `Channel` that you can use to asynchronously receive and send messages.
+You create a `Channel` with libev event loop and a file descriptor. Tipically you'd `socketpair` to obtain two, connected sockets for IPC, but it should also be possible to use pipes. (Sockets are buffered so you'll avoid some potential race conditions after forking)
+
+Then you register some callbacks with `Channel::on`, run `Channel::start` and you're ready to go! It's very simple.
+
+Communication between channels is asynchronous. `Channel::send` puts messages on a queue and whenever underlying fd is ready to be written yodle will serialize the message into a buffer and write it to fd. Receiveing and parsing messages is also asynchronous. Yodle reads and parses the message whenever fd has some data. It handles fragmented messages and messages bigger than the read buffer, so relax. :)
+
+### Message format
+In order to pass your data through the `Channel` yodle sends very simple messages. This message will get serialized in one `Channel` and parsed in the other. When all data is received a callback assigned to KIND value is run.
+
+
+| Name |      Size      |
+|------|:--------------:|
+| KIND |   sizeof(int)  |
+| SIZE | sizeof(size_t) |
+| BODY |   SIZE bytes   |
+
+
+Messages can only be passed with a `std::shared_ptr` to potentially allow passing to another thread or sending one message to multiple channels. 
+
+**Keep in mind to always send messages from the thread that has the libev' event loop** 
 
 # Build
 ```sh
@@ -11,17 +33,10 @@ sudo make install
 
 # Test
 ```sh
-./everest-tests --catch_system_errors=no
+./yodle-tests
 ```
-# Message format
-| Name |      Size      |
-|------|:--------------:|
-| KIND |   sizeof(int)  |
-| SIZE | sizeof(size_t) |
-| BODY |   SIZE bytes   |
 
-
-# Example usage
+# Example
 ```cpp
 
 #include <ev++.h>
