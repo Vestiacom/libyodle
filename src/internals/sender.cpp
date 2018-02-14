@@ -121,7 +121,6 @@ void Sender::onOutput(ev::io& w, int revents)
     ssize_t n  = ::write(w.fd,
                          &mOutputBuffer[mOutputBufferPosition],
                          mOutputBuffer.size() - mOutputBufferPosition);
-    LOGD("WROTE: " << n);
     if (n >= 0) {
         mOutputBufferPosition += n;
     }

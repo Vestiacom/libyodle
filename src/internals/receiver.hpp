@@ -68,6 +68,7 @@ private:
     // Called when a valid request is ready
     MessageHandler mOnMessage;
 
+    // TODO: Move parsing into separate class
     // Parser specific
     enum struct State {
         START,

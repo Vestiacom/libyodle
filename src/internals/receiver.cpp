@@ -84,7 +84,7 @@ void Receiver::onInput(ev::io& w, int revents)
 
     // Make this configurable
     // TODO: Avoid allocating every time
-    std::vector<char> buf(5012);
+    std::vector<char> buf(512);
 
     ssize_t received = ::read(w.fd, buf.data(), buf.size());
     if (received < 0) {
