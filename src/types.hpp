@@ -16,7 +16,7 @@ enum class LogLevel : int {
     YODLE_LOG_LEVEL_WARN,
     YODLE_LOG_LEVEL_ERROR,
 };
-typedef std::function<void(LogLevel, const std::string& message)> LogCallback;
+typedef std::function<void(yodle::LogLevel, const std::string& message)> LogCallback;
 
 typedef std::function<void(const std::shared_ptr<Message> message)> MessageHandler;
 
