@@ -7,10 +7,8 @@
 
 namespace yodle {
 
-std::string toString(const LogLevel logLevel);
-void setLogger(const LogCallback& logCallback);
-
 namespace internals {
+
 extern thread_local LogCallback gLogCallback;
 
 } // namespace internals
