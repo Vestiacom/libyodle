@@ -3,7 +3,7 @@ project(yodle) # Same as library's name
 
 set(MAJOR_VERSION 1)
 set(MINOR_VERSION 2)
-set(PATCH_VERSION 1)
+set(PATCH_VERSION 2)
 set(VERSION "${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}")
 
 ## Build configuration ########################################################
