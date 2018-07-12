@@ -28,19 +28,19 @@ extern thread_local LogCallback gLogCallback;
         std::ostringstream msg__;                                                             \
         msg__ << "libyodle: " << MESSAGE << " [" << __FILENAME__ << ":" << __LINE__ << "]";   \
         if (yodle::internals::gLogCallback) {                                                 \
-            yodle::internals::gLogCallback(yodle::LogLevel::ERROR, msg__.str());              \
+            yodle::internals::gLogCallback(yodle::LogLevel::YODLE_LOG_LEVEL_ERROR, msg__.str());              \
         }                                                                                     \
         throw std::runtime_error(msg__.str());                                                \
     } while (0)
 
-#define LOGE(MESSAGE) LOG(yodle::LogLevel::ERROR, MESSAGE)
-#define LOGW(MESSAGE) LOG(yodle::LogLevel::WARN, MESSAGE)
-#define LOGI(MESSAGE) LOG(yodle::LogLevel::INFO, MESSAGE)
+#define LOGE(MESSAGE) LOG(yodle::LogLevel::YODLE_LOG_LEVEL_ERROR, MESSAGE)
+#define LOGW(MESSAGE) LOG(yodle::LogLevel::YODLE_LOG_LEVEL_WARN, MESSAGE)
+#define LOGI(MESSAGE) LOG(yodle::LogLevel::YODLE_LOG_LEVEL_INFO, MESSAGE)
 
 #if !defined(NDEBUG)
 
-#define LOGD(MESSAGE) LOG(yodle::LogLevel::DEBUG, MESSAGE)
-#define LOGT(MESSAGE) LOG(yodle::LogLevel::TRACE, MESSAGE)
+#define LOGD(MESSAGE) LOG(yodle::LogLevel::YODLE_LOG_LEVEL_DEBUG, MESSAGE)
+#define LOGT(MESSAGE) LOG(yodle::LogLevel::YODLE_LOG_LEVEL_TRACE, MESSAGE)
 
 #else
 

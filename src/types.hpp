@@ -10,11 +10,11 @@ namespace yodle {
 
 /// Log level used in the logging callback
 enum class LogLevel : int {
-    TRACE,
-    DEBUG,
-    INFO,
-    WARN,
-    ERROR,
+    YODLE_LOG_LEVEL_TRACE,
+    YODLE_LOG_LEVEL_DEBUG,
+    YODLE_LOG_LEVEL_INFO,
+    YODLE_LOG_LEVEL_WARN,
+    YODLE_LOG_LEVEL_ERROR,
 };
 typedef std::function<void(LogLevel, const std::string& message)> LogCallback;
 
